@@ -1,0 +1,7 @@
+# Example configuration for ECS IAM module
+# Copy this to terraform.tfvars and update values as needed
+
+app_name              = "my-app"
+environment           = "dev"
+aws_region            = "us-east-1"
+enable_secrets_access = true
