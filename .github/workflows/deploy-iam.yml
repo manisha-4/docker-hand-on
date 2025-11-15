@@ -1,171 +1,56 @@
-name: Deploy ECS IAM Roles and Policies
+name: IAM Deployement
 
 on:
   push:
     branches:
       - main
-      - develop
-    paths:
-      - 'terraform/iam/**'
-      - '.github/workflows/deploy-iam.yml'
-  pull_request:
-    branches:
-      - main
-      - develop
-    paths:
-      - 'terraform/iam/**'
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Environment to deploy to'
-        required: true
-        default: 'dev'
-        type: choice
-        options:
-          - dev
-          
-          - prod
-
+      - master  
 permissions:
   contents: read
-  id-token: write
-
-env:
-  AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
-  TF_VERSION: 1.6.0
-
-jobs:
-  terraform-plan:
-    name: Terraform Plan
+  action:read
+  id-token:write
+  pull-requests:write
+  jobs:
+  deploy-iam:
+    name: Deploy IAM Changes
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment || 'dev' }}
-    outputs:
-      tf_plan_exists: ${{ steps.check-plan.outputs.exists }}
+    environment: production
+    
+
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Terraform
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          ROLE_ARN:"arn:aws:iam::529875232668:role/tf-deployer-role" # Set your desired AWS region
+
+      - name: check identity
+        run: aws sts get-caller-identity
+      - name: setup terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: ${{ env.TF_VERSION }}
+          terraform_version: 1.7.5
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-          aws-region: ${{ env.AWS_REGION }}
+      - name : verify terraform version
+        working directory: iam
+        run: terraform --version 
 
-      - name: Terraform Init
-        working-directory: ./terraform/iam
-        run: terraform init
+      - name: Deploy IAM changes with Terraform
+        run: |
+          cd iam
+          terraform init -backend-config='${{var.TERRAFORM_DEPLOYMENT_BUCKET}}' -backend-config='${{var.TERRAFORM_STATE_KEY}}'
+           
 
-      - name: Terraform Format Check
-        working-directory: ./terraform/iam
-        run: terraform fmt -check -recursive
-        continue-on-error: true
-
-      - name: Terraform Validate
-        working-directory: ./terraform/iam
+      - name : Terrform validate
+        working directory: iam
         run: terraform validate
 
-      - name: Terraform Plan
-        working-directory: ./terraform/iam
-        run: |
-          terraform plan \
-            -var="app_name=${{ secrets.APP_NAME }}" \
-            -var="environment=${{ github.event.inputs.environment || 'dev' }}" \
-            -var="aws_region=${{ env.AWS_REGION }}" \
-            -out=tfplan.binary
+      - name: Terraform plan
+        working directory: iam
+        run: terraform plan -out=tfplan 
 
-      - name: Check if plan exists
-        id: check-plan
-        run: echo "exists=true" >> $GITHUB_OUTPUT
-
-      - name: Upload Terraform plan
-        uses: actions/upload-artifact@v3
-        with:
-          name: tfplan-${{ github.run_id }}
-          path: ./terraform/iam/tfplan.binary
-          retention-days: 5
-
-  terraform-apply:
-    name: Terraform Apply
-    needs: terraform-plan
-    runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment || 'dev' }}
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Download Terraform plan
-        uses: actions/download-artifact@v3
-        with:
-          name: tfplan-${{ github.run_id }}
-          path: ./terraform/iam/
-
-      - name: Terraform Init
-        working-directory: ./terraform/iam
-        run: terraform init
-
-      - name: Terraform Apply
-        working-directory: ./terraform/iam
-        run: terraform apply -auto-approve tfplan.binary
-
-      - name: Comment on PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '✅ Terraform plan completed successfully for ECS IAM roles and policies.'
-            })
-
-  destroy:
-    name: Terraform Destroy (Manual Only)
-    runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment || 'dev' }}
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Terraform Init
-        working-directory: ./terraform/iam
-        run: terraform init
-
-      - name: Terraform Destroy
-        working-directory: ./terraform/iam
-        if: github.event.inputs.action == 'destroy'
-        run: |
-          terraform destroy \
-            -var="app_name=${{ secrets.APP_NAME }}" \
-            -var="environment=${{ github.event.inputs.environment }}" \
-            -var="aws_region=${{ env.AWS_REGION }}" \
-            -auto-approve
+      - name: Terraform apply
+        working directory: iam
+        run: terraform apply -auto-approve tfplan            

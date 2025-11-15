@@ -20,3 +20,9 @@ variable "enable_secrets_access" {
   type        = bool
   default     = true
 }
+
+variable "create_provisioner_role" {
+  description = "Create a provisioner role and policy for CI/automation to provision ECR/ECS/CloudWatch/SQS/S3"
+  type        = bool
+  default     = true
+}
