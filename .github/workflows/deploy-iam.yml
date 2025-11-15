@@ -9,6 +9,13 @@ on:
         options:
         - Create_IAM_Role
         - Delete_IAM_Role 
+
+      Operation:
+        description: 'Select operation type'
+        required: true
+        options:
+        - Create
+        - Delete  
 permissions:
   contents: read
   id-token: write
@@ -17,7 +24,7 @@ permissions:
 jobs:
 Create_IAM_Role:
   name: Deploy IAM Changes
-  if: ${{ github.event.inputs.docker-hand-on == 'Create_IAM_Role' }}
+  if: ${{ github.event.inputs.docker-hand-on == 'Create_IAM_Role' }} && ${{ github.event.inputs.Operation == 'Create' }}
   runs-on: ubuntu-latest
   environment: production
   
