@@ -8,63 +8,64 @@ on:
         description: 'Trigger deployment for docker-hand-on project'
         required: true
         options:
-        - Create_IAM_Role
-        - Delete_IAM_Role 
-
-        Operation:
+          - Create_IAM_Role
+          - Delete_IAM_Role
+      operation:
         type: choice
         description: 'Select operation type'
         required: true
         options:
-        - Create
-        - Delete  
-  permissions:
-    contents: read
-    id-token: write
-    
+          - Create
+          - Delete
 
-  jobs:
-    Create_IAM_Role:
-      name: Deploy IAM Changes
-      if: ${{ github.event.inputs.docker-hand-on == 'Create_IAM_Role' }} && ${{ github.event.inputs.Operation == 'Create' }}
-      runs-on: ubuntu-latest
-      environment: production
-      
+permissions:
+  contents: read
+  id-token: write
 
-      steps:
-        - name: Checkout repository
-          uses: actions/checkout@v4
+jobs:
+  Create_IAM_Role:
+    name: Deploy IAM Changes
+    if: ${{ github.event.inputs.docker-hand-on == 'Create_IAM_Role' && github.event.inputs.operation == 'Create' }}
+    runs-on: ubuntu-latest
+    environment: production
 
-        - name: Configure AWS credentials
-          uses: aws-actions/configure-aws-credentials@v1
-          with:
-            ROLE_ARN:"arn:aws:iam::529875232668:role/tf-deployer-role" # Set your desired AWS region
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-        - name: check identity
-          run: aws sts get-caller-identity
-        - name: setup terraform
-          uses: hashicorp/setup-terraform@v2
-          with:
-            terraform_version: 1.7.5
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::529875232668:role/tf-deployer-role
+          aws-region: us-east-1
 
-        - name : verify terraform version
-          working directory: iam
-          run: terraform --version 
+      - name: Check identity
+        run: aws sts get-caller-identity
 
-        - name: Deploy IAM changes with Terraform
-          run: |
-            cd iam
-            terraform init -backend-config='${{var.TERRAFORM_DEPLOYMENT_BUCKET}}' -backend-config='${{var.TERRAFORM_STATE_KEY}}'
-              
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.7.5
 
-        - name : Terrform validate
-          working directory: iam
-          run: terraform validate
+      - name: Verify Terraform version
+        working-directory: terraform/iam
+        run: terraform --version
 
-        - name: Terraform plan
-          working directory: iam
-          run: terraform plan -out=tfplan 
+      - name: Terraform Init
+        working-directory: terraform/iam
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ vars.TERRAFORM_DEPLOYMENT_BUCKET }}" \
+            -backend-config="key=${{ vars.TERRAFORM_STATE_KEY }}"
 
-        - name: Terraform apply
-          working directory: iam
-          run: terraform apply -auto-approve tfplan 
+      - name: Terraform Validate
+        working-directory: terraform/iam
+        run: terraform validate
+
+      - name: Terraform Plan
+        working-directory: terraform/iam
+        run: terraform plan -out=tfplan
+
+      - name: Terraform Apply
+        working-directory: terraform/iam
+        run: terraform apply -auto-approve tfplan 
