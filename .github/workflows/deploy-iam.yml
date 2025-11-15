@@ -4,13 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       docker-hand-on:
+        type: choice
         description: 'Trigger deployment for docker-hand-on project'
         required: true
         options:
         - Create_IAM_Role
         - Delete_IAM_Role 
 
-      Operation:
+        Operation:
+        type: choice
         description: 'Select operation type'
         required: true
         options:
