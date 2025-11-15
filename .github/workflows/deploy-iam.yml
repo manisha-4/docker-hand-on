@@ -48,24 +48,24 @@ jobs:
           terraform_version: 1.7.5
 
       - name: Verify Terraform version
-        working-directory: terraform/iam
+        working-directory: iam
         run: terraform --version
 
       - name: Terraform Init
-        working-directory: terraform/iam
+        working-directory: iam
         run: |
           terraform init \
             -backend-config="bucket=${{ vars.TERRAFORM_DEPLOYMENT_BUCKET }}" \
             -backend-config="key=${{ vars.TERRAFORM_STATE_KEY }}"
 
       - name: Terraform Validate
-        working-directory: terraform/iam
+        working-directory: iam
         run: terraform validate
 
       - name: Terraform Plan
-        working-directory: terraform/iam
+        working-directory: iam
         run: terraform plan -out=tfplan
 
       - name: Terraform Apply
-        working-directory: terraform/iam
+        working-directory: iam
         run: terraform apply -auto-approve tfplan 
