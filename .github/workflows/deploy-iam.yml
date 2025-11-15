@@ -1,18 +1,23 @@
 name: IAM Deployement
 
 on:
-  push:
-    branches:
-      - main
-      - master  
+  workflow_dispatch:
+    inputs:
+      docker-hand-on:
+        description: 'Trigger deployment for docker-hand-on project'
+        required: true
+        options:
+        - Create_IAM_Role
+        - Delete_IAM_Role 
 permissions:
   contents: read
   id-token: write
   
 
 jobs:
-deploy-iam:
+Create_IAM_Role:
   name: Deploy IAM Changes
+  if: ${{ github.event.inputs.docker-hand-on == 'Create_IAM_Role' }}
   runs-on: ubuntu-latest
   environment: production
   
