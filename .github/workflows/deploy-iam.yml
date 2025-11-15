@@ -6,8 +6,8 @@ on:
       - main
       - master  
 permissions:
-  action:read
-  id-token:write
+  contents: read
+  id-token: write
   
 
 jobs:
