@@ -18,53 +18,53 @@ on:
         options:
         - Create
         - Delete  
-permissions:
-  contents: read
-  id-token: write
-  
+  permissions:
+    contents: read
+    id-token: write
+    
 
-jobs:
-Create_IAM_Role:
-  name: Deploy IAM Changes
-  if: ${{ github.event.inputs.docker-hand-on == 'Create_IAM_Role' }} && ${{ github.event.inputs.Operation == 'Create' }}
-  runs-on: ubuntu-latest
-  environment: production
-  
+  jobs:
+    Create_IAM_Role:
+      name: Deploy IAM Changes
+      if: ${{ github.event.inputs.docker-hand-on == 'Create_IAM_Role' }} && ${{ github.event.inputs.Operation == 'Create' }}
+      runs-on: ubuntu-latest
+      environment: production
+      
 
-  steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        ROLE_ARN:"arn:aws:iam::529875232668:role/tf-deployer-role" # Set your desired AWS region
+        - name: Configure AWS credentials
+          uses: aws-actions/configure-aws-credentials@v1
+          with:
+            ROLE_ARN:"arn:aws:iam::529875232668:role/tf-deployer-role" # Set your desired AWS region
 
-    - name: check identity
-      run: aws sts get-caller-identity
-    - name: setup terraform
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_version: 1.7.5
+        - name: check identity
+          run: aws sts get-caller-identity
+        - name: setup terraform
+          uses: hashicorp/setup-terraform@v2
+          with:
+            terraform_version: 1.7.5
 
-    - name : verify terraform version
-      working directory: iam
-      run: terraform --version 
+        - name : verify terraform version
+          working directory: iam
+          run: terraform --version 
 
-    - name: Deploy IAM changes with Terraform
-      run: |
-        cd iam
-        terraform init -backend-config='${{var.TERRAFORM_DEPLOYMENT_BUCKET}}' -backend-config='${{var.TERRAFORM_STATE_KEY}}'
-          
+        - name: Deploy IAM changes with Terraform
+          run: |
+            cd iam
+            terraform init -backend-config='${{var.TERRAFORM_DEPLOYMENT_BUCKET}}' -backend-config='${{var.TERRAFORM_STATE_KEY}}'
+              
 
-    - name : Terrform validate
-      working directory: iam
-      run: terraform validate
+        - name : Terrform validate
+          working directory: iam
+          run: terraform validate
 
-    - name: Terraform plan
-      working directory: iam
-      run: terraform plan -out=tfplan 
+        - name: Terraform plan
+          working directory: iam
+          run: terraform plan -out=tfplan 
 
-    - name: Terraform apply
-      working directory: iam
-      run: terraform apply -auto-approve tfplan 
+        - name: Terraform apply
+          working directory: iam
+          run: terraform apply -auto-approve tfplan 
