@@ -60,12 +60,55 @@ jobs:
 
       - name: Terraform Validate
         working-directory: terraform
-        run: terraform validate
+        run: terraform validate 
 
       - name: Terraform Plan
         working-directory: terraform
-        run: terraform plan -out=tfplan
+        run: terraform plan -var-file devl.tfvars --out=tfplan 
 
       - name: Terraform Apply
         working-directory: terraform
         run: terraform apply -auto-approve tfplan 
+  ecr_login:
+    name: ECR Login
+    if: ${{ github.event.inputs.docker-hand-on == 'ecr_login' }}
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::529875232668:role/tf-deployer-role
+          aws-region: us-east-1
+
+      - name: Check identity
+        run: aws sts get-caller-identity
+
+      - name: ECR Login
+        id: ecr_login
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name : build, tag and push image to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.ecr_login.outputs.registry }}
+          ECR_REPOSITORY: to-do-app-image
+          IMAGE_TAG: latest
+        run: |
+          cd multi-container-app
+
+          # Build the Docker image
+          docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
+
+          # Tag the image with the ECR registry
+          docker tag $ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+          # Push the image to ECR
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG   
+
+      - name : log out from ECR
+        run: |
+          docker logout $ECR_REGISTRY        
