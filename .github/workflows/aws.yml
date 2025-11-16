@@ -1,4 +1,4 @@
-name: IAM Deployement
+name: Infra Deployement
 
 on:
   workflow_dispatch:
