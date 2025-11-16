@@ -101,7 +101,7 @@ jobs:
           cd multi-container-app
 
           # Build the Docker image
-          docker build -f multi-container-app/app/Dockerfile -t to-doimage .
+          docker build -f app/Dockerfile -t to-doimage .
 
           # Tag the image with the ECR registry
           docker tag to-doimage:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
