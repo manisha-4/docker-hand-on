@@ -101,14 +101,14 @@ jobs:
           cd multi-container-app
 
           # Build the Docker image
-          docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
+          docker build -f multi-container-app/app/Dockerfile -t to-doimage .
 
           # Tag the image with the ECR registry
-          docker tag $ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker tag to-doimage:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
           # Push the image to ECR
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG   
 
       - name : log out from ECR
         run: |
-          docker logout $ECR_REGISTRY        
+          docker logout $ECR_REGISTRY
