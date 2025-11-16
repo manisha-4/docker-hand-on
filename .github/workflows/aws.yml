@@ -1,0 +1,71 @@
+name: IAM Deployement
+
+on:
+  workflow_dispatch:
+    inputs:
+      docker-hand-on:
+        type: choice
+        description: 'Trigger deployment for docker-hand-on project'
+        required: true
+        options:
+          - ecr_login
+          - infra_setup
+      operation:
+        type: choice
+        description: 'Select operation type'
+        required: true
+        options:
+          - Create
+          - Delete
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  infra_setup:
+    name: setting up infra
+    if: ${{ github.event.inputs.docker-hand-on == 'infra_setup' && github.event.inputs.operation == 'Create' }}
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::529875232668:role/tf-deployer-role
+          aws-region: us-east-1
+
+      - name: Check identity
+        run: aws sts get-caller-identity
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.7.5
+
+      - name: Verify Terraform version
+        working-directory: terraform
+        run: terraform --version
+
+      - name: Terraform Init
+        working-directory: terraform
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ vars.TERRAFORM_DEPLOYMENT_BUCKET }}" \
+            -backend-config="key=${{ vars.TERRAFORM_STATE_KEY }}"
+
+      - name: Terraform Validate
+        working-directory: terraform
+        run: terraform validate
+
+      - name: Terraform Plan
+        working-directory: terraform
+        run: terraform plan -out=tfplan
+
+      - name: Terraform Apply
+        working-directory: terraform
+        run: terraform apply -auto-approve tfplan 
