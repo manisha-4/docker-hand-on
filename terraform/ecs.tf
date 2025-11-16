@@ -128,10 +128,7 @@ output "ecs_task_definition_arn" {
 	description = "ARN of the ECS task definition"
 }
 
-output "ecs_service_name" {
-	value       = aws_ecs_service.app.name
-	description = "Name of the ECS service"
-}
+
 
 output "ecr_repository_url" {
 	value       = aws_ecr_repository.main.repository_url
