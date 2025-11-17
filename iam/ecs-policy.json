@@ -1,0 +1,21 @@
+{
+    "version":"2012-10-17",
+    "statement":[
+        {
+            "effect":"allow",
+            "action":[
+                "ecr:*",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+            ],
+            "resource":"*"      
+},
+        {
+            "effect":"allow",
+            "action":[
+                "iam:PassRole"
+            ],
+            "resource":"arn:aws:iam::*:role/ecsTaskexecutionRole"
+        }
+    ]
+}

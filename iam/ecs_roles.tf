@@ -1,36 +1,33 @@
-data "aws_iam_policy_document" "ecs_task_execution_assume_role_policy" {
-  statement {
-    effect = "Allow"
-    principals {
-      type        = "Service"
-      identifiers = ["ecs-tasks.amazonaws.com"]
-    }
-    actions = ["sts:AssumeRole"]
-  }
+resource "aws_iam_policy" "ecs_task_policy" {
+  name        = "ecsTaskexecutionPolicy"
+  description = "Custom ECS access policy"
+
+  # Load JSON from external file
+  policy = file("${path.module}/ecs-policy.json")
 }
 
-resource "aws_iam_role" "ecs_task_execution_role" {
-  name               = "ecsTaskExecutionRole"
-  assume_role_policy = data.aws_iam_policy_document.ecs_task_execution_assume_role_policy.json
+resource "aws_iam_role" "ecs_role" {
+  name = "ecsTaskExecutionRole"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Principal = {
+          Service = ["ecs-tasks.amazonaws.com",
+          "events.amazonaws.com",
+          "schedulers.amazonaws.com"]
+
+        },
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
 }
 
-resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy_attachment" {
-  role       = aws_iam_role.ecs_task_execution_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+resource "aws_iam_role_policy_attachment" "ecs_custom_attach" {
+  role       = aws_iam_role.ecs_role.name
+  policy_arn = aws_iam_policy.ecs_task_policy.arn
 }
 
-data "aws_iam_policy_document" "ecs_task_assume_role_policy" {
-  statement {
-    effect = "Allow"
-    principals {
-      type        = "Service"
-      identifiers = ["ecs-tasks.amazonaws.com"]
-    }
-    actions = ["sts:AssumeRole"]
-  }
-}
-
-resource "aws_iam_role" "ecs_task_role" {
-  name               = "ecsTaskRole"
-  assume_role_policy = data.aws_iam_policy_document.ecs_task_assume_role_policy.json
-}
