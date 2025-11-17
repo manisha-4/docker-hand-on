@@ -95,13 +95,13 @@ jobs:
       - name : build, tag and push image to ECR
         env:
           ECR_REGISTRY: ${{ steps.ecr_login.outputs.registry }}
-          ECR_REPOSITORY: to-do-app-image
+          ECR_REPOSITORY: simple-app-image
           IMAGE_TAG: latest
         run: |
-          cd multi-container-app
+          cd simple-container-app
 
           # Build the Docker image
-          docker build -f ./app/Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker build -f Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
 
           # Push the image to ECR
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG   
