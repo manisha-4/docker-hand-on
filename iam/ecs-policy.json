@@ -6,7 +6,10 @@
       "Action": [
         "ecr:*",
         "logs:CreateLogStream",
-        "logs:PutLogEvents"
+        "logs:PutLogEvents",
+        "ecs:*",
+        "scheduler:*",
+        "events:*"
       ],
       "Resource": "*"
     },
@@ -15,7 +18,7 @@
       "Action": [
         "iam:PassRole"
       ],
-      "Resource": "arn:aws:iam::123456789012:role/ecsTaskexecutionRole"
+      "Resource": "arn:aws:iam::529875232668:role/ecsTaskexecutionRole"
     }
   ]
 }
