@@ -35,17 +35,17 @@ resource "aws_ecs_task_definition" "app" {
 					name  = "AWS_REGION"
 					value = var.aws_region
 				},
-				{
-					name  = "MONGO_URI"
-					value = "mongodb://localhost:27017/${var.mongo_db_name}"
-				}
+				# {
+				# 	name  = "MONGO_URI"
+				# 	value = "mongodb://localhost:27017/${var.mongo_db_name}"
+				# }
 			]
-			portMappings = [
-				{
-					containerPort = var.container_port
-					protocol      = "tcp"
-				}
-			]
+			# portMappings = [
+			# 	{
+			# 		containerPort = var.container_port
+			# 		protocol      = "tcp"
+			# 	}
+			# ]
 			essential = true
 			logConfiguration = {
 				logDriver = "awslogs"
@@ -55,39 +55,39 @@ resource "aws_ecs_task_definition" "app" {
 					awslogs-stream-prefix = var.app_name
 				}
 			}
-			dependsOn = [
-				{
-					containerName = "mongo"
-					condition     = "HEALTHY"
-				}
-			]
+			# dependsOn = [
+			# 	{
+			# 		containerName = "mongo"
+			# 		condition     = "HEALTHY"
+			# 	}
+			# ]
 		},
-		{
-			name  = "mongo"
-			image = "mongo:6"
-			portMappings = [
-				{
-					containerPort = 27017
-					protocol      = "tcp"
-				}
-			]
-			essential = false
-			logConfiguration = {
-				logDriver = "awslogs"
-				options = {
-					awslogs-group         = aws_cloudwatch_log_group.ecs_task_logs.name
-					awslogs-region        = var.aws_region
-					awslogs-stream-prefix = "mongo"
-				}
-			}
-			healthCheck = {
-				command     = ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-				interval    = 10
-				timeout     = 5
-				retries     = 3
-				startPeriod = 30
-			}
-		}
+		# {
+		# 	name  = "mongo"
+		# 	image = "mongo:6"
+		# 	portMappings = [
+		# 		{
+		# 			containerPort = 27017
+		# 			protocol      = "tcp"
+		# 		}
+		# 	]
+		# 	essential = false
+		# 	logConfiguration = {
+		# 		logDriver = "awslogs"
+		# 		options = {
+		# 			awslogs-group         = aws_cloudwatch_log_group.ecs_task_logs.name
+		# 			awslogs-region        = var.aws_region
+		# 			awslogs-stream-prefix = "mongo"
+		# 		}
+		# 	}
+		# 	healthCheck = {
+		# 		command     = ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+		# 		interval    = 10
+		# 		timeout     = 5
+		# 		retries     = 3
+		# 		startPeriod = 30
+		# 	}
+		# }
 	])
 }
 
