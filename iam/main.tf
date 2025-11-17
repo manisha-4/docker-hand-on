@@ -5,7 +5,7 @@ provider "aws"{
 
 terraform {
   backend "s3"{
-    key="docker-hands-on/terraform.tfstate"
+    key="iam/terraform.tfstate"
     region="us-east-1"
   }
 }

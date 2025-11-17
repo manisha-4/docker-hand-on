@@ -55,8 +55,7 @@ jobs:
         working-directory: iam
         run: |
           terraform init \
-            -backend-config="bucket=${{ vars.TERRAFORM_DEPLOYMENT_BUCKET }}" \
-            -backend-config="key=${{ vars.TERRAFORM_STATE_KEY }}"
+            -backend-config="bucket=${{ vars.TERRAFORM_DEPLOYMENT_BUCKET }}" 
 
       - name: Terraform Validate
         working-directory: iam

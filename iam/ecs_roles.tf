@@ -25,13 +25,6 @@ resource "aws_iam_role" "ecs_role" {
           Service = "events.amazonaws.com"
         },
         Action = "sts:AssumeRole"
-      },
-      {
-        Effect = "Allow",
-        Principal = {
-          Service = "events.amazonaws.com"
-        },
-        Action = "sts:AssumeRole"
       }
     ]
   })
