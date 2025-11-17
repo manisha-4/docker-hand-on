@@ -101,10 +101,7 @@ jobs:
           cd multi-container-app
 
           # Build the Docker image
-          docker build -f app/Dockerfile -t to-doimage .
-
-          # Tag the image with the ECR registry
-          docker tag to-doimage $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker build -f app/Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
 
           # Push the image to ECR
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG   
