@@ -1,9 +1,6 @@
 
 
 
-resource "aws_ecr_repository" "main" {
-    name = "${var.app_name}-${var.environment}-ecr-repository"
-}
 
 resource "aws_ecs_cluster" "main" {
     name = "${var.app_name}-${var.environment}-ecs-cluster"
@@ -25,7 +22,7 @@ resource "aws_ecs_task_definition" "app" {
 	container_definitions = jsonencode([
 		{
 			name  = var.app_name
-			image = "${aws_ecr_repository.main.repository_url}:latest"
+			image = "529875232668.dkr.ecr.us-east-1.amazonaws.com/simple-app-image:latest"
 			environment = [
 				{
 					name  = "ENVIRONMENT"
@@ -130,7 +127,4 @@ output "ecs_task_definition_arn" {
 
 
 
-output "ecr_repository_url" {
-	value       = aws_ecr_repository.main.repository_url
-	description = "ECR repository URL for pushing images"
-}
+
